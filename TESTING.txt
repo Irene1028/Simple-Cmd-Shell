@@ -1,0 +1,257 @@
+This is a guide for TESTING.
+
+You should type ./myShell to run myShell.
+It should print a prompt:
+
+myShell:/home/yx136/ece551/mp_miniproject$
+
+and expect your input.
+
+Step 1. 
+
+/bin/ls
+
+Output is:
+
+myShell:/home/yx136/ece551/mp_miniproject$ ls
+cdCommand.cpp	  myShell	parseInput.cpp	   TESTING.txt
+commandShell.txt  myShell.cpp	parsePATH.cpp	   TESTING.txt~
+main.cpp	  myShell.h	README		   validateInput.cpp
+Makefile	  numerics.txt	searchCommand.cpp  Vars.cpp
+Program exited with status 0
+
+It is right. As we want, myShell can run the ls command and show us what we have in this working path, then exit with status 0.
+
+/bin/cat main.cpp
+
+myShell:/home/yx136/ece551/mp_miniproject$ /bin/cat main.cpp
+#include <cstdlib>
+
+#include "myShell.h"
+
+int main() {
+  myShell myShell;
+  while (!myShell.getExit()) {
+    myShell.runMyShell();
+  }
+  return EXIT_SUCCESS;
+}
+Program exited with status 0
+
+It is right. MyShell can find and run cat command in /bin path, and can take an argument of “main.cpp”. It would print the content of main.cpp and exit with status 0.
+ 
+exit
+
+myShell:/home/yx136/ece551/mp_miniproject$ exit
+yx136@ece551:~/ece551/mp_miniproject$ 
+
+It is right. When users type “exit”, our shell would stop and return our working path.
+
+Step 2.
+
+123
+
+myShell:/home/yx136/ece551/mp_miniproject$ 123
+Command 123 not found
+myShell:/home/yx136/ece551/mp_miniproject$
+
+It is right. We type abc, which is not a command. So of course we can not find it in any path included in environment variable “PATH”. Then myShell can tell us the command is not found, and it will expect your next input.
+
+ls
+
+myShell:/home/yx136/ece551/mp_miniproject$ ls
+cdCommand.cpp	  main.cpp  myShell	 myShell.h     parseInput.cpp  README		  TESTING.txt	validateInput.cpp
+commandShell.txt  Makefile  myShell.cpp  numerics.txt  parsePATH.cpp   searchCommand.cpp  TESTING.txt~	Vars.cpp
+Program exited with status 0
+
+When we type only command ls, without typing its full path, myShell can still find this command and run it. As above, it would print all the files under current path.
+
+cat    			main.cpp
+
+myShell:/home/yx136/ece551/mp_miniproject$ cat    			main.cpp
+#include <cstdlib>
+
+#include "myShell.h"
+
+int main() {
+  myShell myShell;
+  while (!myShell.getExit()) {
+    myShell.runMyShell();
+  }
+  return EXIT_SUCCESS;
+}
+Program exited with status 0
+
+We type more than one space and tab between cat command and main.cpp. Obviously myShell can skip those extra spaces and catch the content of main correctly.
+
+./printer hello world !
+
+myShell:/home/yx136/ece551/mp_miniproject$ ./printer hello world !                
+hello
+world
+!
+Program exited with status 0
+
+It is right. We have a program named printer to help us test myShell. Its functionality is to print each argument orderly, one word a line. As you see, when we run “./printer hello world !”, myShell successfully runs this printer and prints three lines, one for “hello”, one for “world” and one for “!”.
+
+./printer hello\ world \ !
+
+myShell:/home/yx136/ece551/mp_miniproject$ ./printer hello\ world \ !     
+hello world
+ !
+Program exited with status 0
+
+When we include escaped space right after “hello”, and left before “!”, myShall can take first two arguments as one, and prints “hello world” and “ !”.
+
+\ ./printer a b
+
+Then if we type escaped space at the start of input, like above, this space should be included in the first argument. We should take “ ./printer” as our command. Then we get following output:
+
+myShell:/home/yx136/ece551/mp_miniproject$ \ ./printer a b
+Opendir failed!
+
+It is right because apparently “ .” is not a valid path that we can open
+
+Step 3.
+
+cd & cd ece551 & cd . & cd .. & cd ~
+
+myShell:/home/yx136/ece551/mp_miniproject$ cd
+myShell:/home/yx136$ cd ece551
+myShell:/home/yx136/ece551$ cd .
+myShell:/home/yx136/ece551$ cd ..
+myShell:/home/yx136$ cd ~
+myShell:/home/yx136$ cd ece551  
+myShell:/home/yx136/ece551$ cd ~
+myShell:/home/yx136$
+
+As expected, we run cd, it goes back to home path “/home/yx136”. If we run cd ece551, we can make current working path equals to “/home/yx136/ece551”. Then we run cd . and cd .., myShell stays at current path and goes to its parent path respectively. If we run cd ~, myShell goes to home path again, as the last two lines showed.
+
+cd abc & cd ece551 ece551
+
+myShell:/home/yx136$ cd ece551 ece551
+cd needs at most one argument.
+myShell:/home/yx136$ cd 123
+Failed to change working dir
+
+Here, we test the case where we have invalid input, like multiple paths and wrong paths. When we run cd ece551 ece551, we have 2 paths for cd command, myShell would print the error that cd takes no more than 1 argument. When we run cd 123, it tells us “Failed to change working dir”, because 123 is not a directory name and we can not change to it. If we are currently at a directory which does not contain a specific directory, like ece551, myShell should also print this error. As shown in the following:
+
+myShell:/home/yx136/ece551$ cd ece551
+Failed to change working dir
+
+After we run cd, current working directory should be changed. If now we try running a program not existing in current directory, we can not find the command. Like showing below:
+
+myShell:/home/yx136/ece551$ ./printer a b ccc
+Command printer not found
+
+
+set var 1
+env
+export var
+env
+inc var
+export var
+env
+
+We run these commands one by one to check the functionality of set, export and inc. After we run first two command, the output is:
+
+LESSOPEN=| /usr/bin/lesspipe %s
+MAIL=/var/mail/yx136
+USER=yx136
+SSH_CLIENT=107.15.240.86 65413 22
+SHLVL=1
+LD_LIBRARY_PATH=/usr/lib/debug
+HOME=/home/yx136
+OLDPWD=/home/yx136/ece551
+SSH_TTY=/dev/pts/114
+VISUAL=emacs -nw
+LOGNAME=yx136
+_=/usr/bin/valgrind
+XDG_SESSION_ID=83495
+TERM=xterm-256color
+PATH=/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/games:/usr/local/games
+S_COLORS=auto
+XDG_RUNTIME_DIR=/run/user/1347
+GLIBCPP_FORCE_NEW=1
+LANG=en_US.UTF-8
+LS_COLORS=rs=0:di=01;34:ln=01;36:mh=00:pi=40;33:so=01;35:do=01;35:bd=40;33;01:cd=40;33;01:or=40;31;01:mi=00:su=37;41:sg=30;43:ca=30;41:tw=30;42:ow=34;42:st=37;44:ex=01;32:*.tar=01;31:*.tgz=01;31:*.arc=01;31:*.arj=01;31:*.taz=01;31:*.lha=01;31:*.lz4=01;31:*.lzh=01;31:*.lzma=01;31:*.tlz=01;31:*.txz=01;31:*.tzo=01;31:*.t7z=01;31:*.zip=01;31:*.z=01;31:*.Z=01;31:*.dz=01;31:*.gz=01;31:*.lrz=01;31:*.lz=01;31:*.lzo=01;31:*.xz=01;31:*.zst=01;31:*.tzst=01;31:*.bz2=01;31:*.bz=01;31:*.tbz=01;31:*.tbz2=01;31:*.tz=01;31:*.deb=01;31:*.rpm=01;31:*.jar=01;31:*.war=01;31:*.ear=01;31:*.sar=01;31:*.rar=01;31:*.alz=01;31:*.ace=01;31:*.zoo=01;31:*.cpio=01;31:*.7z=01;31:*.rz=01;31:*.cab=01;31:*.wim=01;31:*.swm=01;31:*.dwm=01;31:*.esd=01;31:*.jpg=01;35:*.jpeg=01;35:*.mjpg=01;35:*.mjpeg=01;35:*.gif=01;35:*.bmp=01;35:*.pbm=01;35:*.pgm=01;35:*.ppm=01;35:*.tga=01;35:*.xbm=01;35:*.xpm=01;35:*.tif=01;35:*.tiff=01;35:*.png=01;35:*.svg=01;35:*.svgz=01;35:*.mng=01;35:*.pcx=01;35:*.mov=01;35:*.mpg=01;35:*.mpeg=01;35:*.m2v=01;35:*.mkv=01;35:*.webm=01;35:*.ogm=01;35:*.mp4=01;35:*.m4v=01;35:*.mp4v=01;35:*.vob=01;35:*.qt=01;35:*.nuv=01;35:*.wmv=01;35:*.asf=01;35:*.rm=01;35:*.rmvb=01;35:*.flc=01;35:*.avi=01;35:*.fli=01;35:*.flv=01;35:*.gl=01;35:*.dl=01;35:*.xcf=01;35:*.xwd=01;35:*.yuv=01;35:*.cgm=01;35:*.emf=01;35:*.ogv=01;35:*.ogx=01;35:*.aac=00;36:*.au=00;36:*.flac=00;36:*.m4a=00;36:*.mid=00;36:*.midi=00;36:*.mka=00;36:*.mp3=00;36:*.mpc=00;36:*.ogg=00;36:*.ra=00;36:*.wav=00;36:*.oga=00;36:*.opus=00;36:*.spx=00;36:*.xspf=00;36:
+SHELL=/bin/bash
+LESSCLOSE=/usr/bin/lesspipe %s %s
+PWD=/home/yx136/ece551/mp_miniproject
+SSH_CONNECTION=107.15.240.86 65413 152.3.77.223 22
+EDITOR=emacs -nw
+GLIBCXX_FORCE_NEW=1
+LD_PRELOAD=
+Program exited with status 0
+
+As we can see, when we print all the environment variables with “env” command, myShell would print all the variables and their values. There is no var listed because we do not export it yet. Then we export it, We can see “var=1” added. After we run the rest three commands, the value of var changes to 2.
+
+set C&C 1
+set \\\ 1
+set PATH /home/x136
+set path /home/yx136/ece551
+export PATH
+export path
+env
+
+We run above commands to test our restrictions about variable names. When we run “set C&C 1” and “set \\\ 1”, myShell prints “Invalid var name”, which is right because the input should only be a combination of numbers, letters and underscore. 
+
+Then we run the rest commands. In the output, we can see variable “PATH” changing from “/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/usr/” to “/home/yx136”. And in the end of variable list, a new variable “path=/home/yx136/ece551” is added. This means case sensitive. 
+
+After this, we run ls command, myShell prints “Command ls not found”, which is right because we update PATH and now we should search in “/home/yx136” which does not include ls command. 
+
+set a 123
+set b 444
+echo $a
+echo $a$b
+echo $$a-$b$b-
+
+We run above commands to test $ evaluation and get following output:
+
+myShell:/home/yx136/ece551/mp_miniproject$ set a 123
+myShell:/home/yx136/ece551/mp_miniproject$ set b 444
+myShell:/home/yx136/ece551/mp_miniproject$ echo $a
+123
+Program exited with status 0
+myShell:/home/yx136/ece551/mp_miniproject$ echo $a$b
+123444
+Program exited with status 0
+myShell:/home/yx136/ece551/mp_miniproject$ echo $$a-$b$b-  
+$123-444444-
+Program exited with status 0
+myShell:/home/yx136/ece551/mp_miniproject$ echo $c
+Variable $c Not Found
+$c
+Program exited with status 0
+
+As we can see, myShell can detect “$” in input and replace the variable with its current value. When we type “echo $a”, it prints 123, which is the value of a. $a$b is also legal, it equals “123444”, which is a’s value followed immediately by b’s value. When we run “$$a-$b$b-”, we test a more complex condition: input with multiple “$”, variables followed by “-” and including the same variable. As expected, myShell gives us a correct output. However, if we run ”echo $c”, myShell would tell is “Variable $c Not Found” and print “$c”. It is right because we want myShell to print variable values when those variables exist. If they do not exist, it should print what it takes as input. 
+
+set a 123 456 789
+
+When we run this, we get this output:
+
+myShell:/home/yx136/ece551/mp_miniproject$ set a 123 456 789
+myShell:/home/yx136/ece551/mp_miniproject$ echo $a
+123 456 789
+Program exited with status 0
+
+It is right because we should take the rest of input as a’s value, even if space included.
+
+set a 123
+set b 
+set c xy123
+
+After setting three variables like a, b, c, we run “echo $a $b $c”. Then we get an input as following:
+
+myShell:/home/yx136/ece551/mp_miniproject$ echo $a $b $c
+123  xy123
+Program exited with status 0
+
+It is right because we do not set any value for b. When we try to get their values, myShell print “” for b. Then we do “inc a, inc b, inc c” and run echo command again. The output is:
+
+myShell:/home/yx136/ece551/mp_miniproject$ echo $a $b $c
+124 1 1
+Program exited with status 0
+We can see that when a variable can be represented by a number, like a, it will increment by 1 after inc operation. Those variables that can not be represented, like b and c, their values become 1, which means they are set to 0 and increment by 1.
+
+
